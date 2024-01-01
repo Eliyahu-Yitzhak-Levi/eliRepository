@@ -1,0 +1,65 @@
+body,
+html {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+td,
+button {
+    height: 20px;
+    width: 20px;
+    background-color: #C0C0C0;
+    border: 1.5px solid;
+    border-top-color: #ffffff;
+    border-right-color: #7B7B7B;
+    border-bottom-color: #7B7B7B;
+    border-left-color: #ffffff;
+    text-align: center;
+    vertical-align: middle;
+    transition: transform 0.1s ease-in-out;
+    /* Add a smooth transition effect */
+}
+
+
+button:active {
+    transform: scale(0.9);
+    /* Apply a scaling effect when the button is pressed */
+}
+
+
+
+.revealed {
+    font-family: "Press Start";
+    background-color: #C0C0C0;
+    font-size: 80%;
+    text-align: center;
+    border: none;
+}
+
+
+.flag{
+    position: relative;
+    width: 15px;
+    height: 15px;
+    transform: translateX(-4px); 
+}
+
+img{
+    position: relative;
+    width: 18px;
+    height: 18px;
+    transform: translateX(-4.5px); 
+}
+
+
+
