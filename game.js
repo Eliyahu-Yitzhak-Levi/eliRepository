@@ -12,6 +12,8 @@ var gLevel = {
     SIZE: 6,
     MINES: 4
 }
+
+
 var gFirstMove = true
 var gNotBombs
 var gBombs = []
@@ -37,7 +39,7 @@ function init() {
 
 
 
-function createCell(i, j) {
+function createCell() {
     return {
         minesAroundCount: 0,
         isShown: false,
@@ -81,7 +83,6 @@ function renderBoard(mat, selector) { // makes a board, takes a mat and a select
             <img src='button.PNG' alt="" class="flag"></img>
             </button></td>` // MAKES A TEMPLATE STRING WITH CLASS NAME AND WHATS IN IT
 
-
         }
         strHTML += '</tr>'
     }
@@ -104,7 +105,8 @@ function simulateLeftClick(event) {
         bubbles: true,
         cancelable: true,
         button: 2,
-    });
+    }
+    );
 
     //targets the element that I clicked, and sends it over there, in my case it creates a fake left click only its a right click.
     event.target.dispatchEvent(leftClickEvent);
@@ -168,7 +170,7 @@ function bombPlacer(board, initialClickI, initialClickJ) { // MODIFIED VERSION, 
     //as prameters to start the game and they are sent to the flagOrClick function when the click is left click
     var bombsPlaced = 0;
     board[initialClickI][initialClickJ].minesAroundCount = 0 // WHY WONT THIS LINE WORK
-    console.log(board[initialClickI][initialClickJ]);
+    console.log(board[initialClickI][initialClickJ])
 
     while (bombsPlaced < gLevel.MINES) {
         var randomI = getRandomIntInclusive(0, board.length - 1);
@@ -270,40 +272,62 @@ function endGame() {
 }
 
 function flagOrPress(event, elBtn) {
-
     event.preventDefault()
     var currCell = gBoard[elBtn.dataset.i][elBtn.dataset.j]
     var currCellI = +elBtn.dataset.i
     var currCellJ = +elBtn.dataset.j
 
-    const imgElement = document.createElement('img')
-    const flag = elBtn.querySelector('.flag')
-
 
     if (gFirstMove === true && event.button === 0) {
         gFirstMove = false
         currCell.minesAroundCount = 0
-        bombPlacer(gBoard, currCellI, currCellJ) // bombPlacer is called ONLY after the 1st move, currCellI and currCellJ are sent as the intialClick param
+        bombPlacer(gBoard, currCellI, currCellJ)
     }
 
-    currCell.minesAroundCount = countBombs(currCellI, currCellJ);
+    currCell.minesAroundCount = countBombs(currCellI, currCellJ)
 
     if (event.button === 0) {
-        console.log('LEFT MOUSE CLICK');
+        // Left mouse click logic
+
         if (currCell.isMarked === true) {
-            return;
+            return
         }
 
         if (currCell.isMine === true) {
-            revealBombs();
-            endGame();
+            revealBombs()
+            endGame()
         } else {
             if (currCell.minesAroundCount === 0) {
-                revealEmptyPlaces(currCellI, currCellJ, gBoard);
+                revealEmptyPlaces(currCellI, currCellJ, gBoard)
             } else {
-                elBtn.innerText = currCell.minesAroundCount;
-                elBtn.classList.add('revealed');
+                elBtn.innerText = currCell.minesAroundCount
+                elBtn.classList.add('revealed')
             }
         }
+    } else if (event.button === 2) {
+
+
+        if (!currCell.isMarked) {
+
+            currCell.isMarked = true
+
+            // Created the flag image element
+            const imgElementFlag = document.createElement('img')
+            imgElementFlag.src = 'flag.png'
+            elBtn.innerHTML = ''
+            elBtn.appendChild(imgElementFlag)
+            gGame.markedCount++
+        } else {
+            // If already marked, remove flag
+            currCell.isMarked = false
+            const imgElementButton = document.createElement('img')
+            imgElementButton.src = 'button.png'
+            elBtn.innerHTML = ''
+            elBtn.appendChild(imgElementButton)
+            gGame.markedCount--
+        }
+
+
     }
 }
+
