@@ -8,12 +8,16 @@ var gGame = {
     secsPassed: 0,
 }
 
+
+
 var gLevel = {
-    SIZE: 6,
-    MINES: 4
+    SIZE: 0,
+    MINES: 0
 }
 
-
+var gClues = 3
+var gLifes = 3
+var gTimerInterval
 var gFirstMove = true
 var gNotBombs
 var gBombs = []
@@ -26,15 +30,9 @@ const BOMB = ' BOMB'
 
 
 function init() {
-
+    gFirstMove = true
     gBoard = buildBoard(gLevel.SIZE)
     renderBoard(gBoard, '.Sweeper-inner')
-    // bombPlacer(gBoard)
-    // bombPlacer(gBoard)
-    gNotBombs = getNotBombs(gBoard)
-    // console.log('NOT BOMBS ARRAY : ', gNotBombs)
-    // console.log('BOMBS ARRAY : ', gBombs)
-
 }
 
 
@@ -93,6 +91,111 @@ function renderBoard(mat, selector) { // makes a board, takes a mat and a select
 
 }
 
+
+
+function startTimer() {
+    var seconds = 0
+    var minutes = 0
+    var hours = 0
+
+    gTimerInterval = setInterval(() => {
+        seconds++
+
+        if (seconds === 60) {
+            seconds = 0
+            minutes++
+
+            if (minutes === 60) {
+                minutes = 0
+                hours++
+            }
+        }
+
+        var time =
+            (hours < 10 ? '0' : '') + hours + ':' +
+            (minutes < 10 ? '0' : '') + minutes + ':' +
+            (seconds < 10 ? '0' : '') + seconds
+
+        var elTimer = document.querySelector('.timer span')
+        elTimer.innerText = time
+    }, 1000)
+}
+
+
+
+function setDifficulty(elBtn) {
+    var elFlagsAmount = document.querySelector('.flagAmount span')
+    elFlagsAmount.innerText = gLevel.MINES
+
+
+    if (elBtn.innerText === 'Easy ||') {
+        console.log('easy');
+        gLevel.SIZE = 5
+        gLevel.MINES = 2
+        elFlagsAmount.innerText = gLevel.MINES
+        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+        elTimerAndFlagAmount.style.display = 'flex'
+        startTimer()
+        init()
+
+    } else if (elBtn.innerText === 'Intermidate ||') {
+        console.log('inter');
+        gLevel.SIZE = 10
+        gLevel.MINES = 30
+        elFlagsAmount.innerText = gLevel.MINES
+        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+        elTimerAndFlagAmount.style.display = 'flex'
+        startTimer()
+        init()
+
+    } else if (elBtn.innerText === 'Hard ||') {
+        console.log('hard');
+        gLevel.SIZE = 20
+        gLevel.MINES = 60
+        elFlagsAmount.innerText = gLevel.MINES
+        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+        elTimerAndFlagAmount.style.display = 'flex'
+        startTimer()
+        init()
+    } else if (elBtn.innerText === 'Custom size') {
+        console.log('custom');
+        gLevel.SIZE = +prompt('Board size : ')
+        gLevel.MINES = +prompt('How many mines bro?')
+        elFlagsAmount.innerText = gLevel.MINES
+        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+        elTimerAndFlagAmount.style.display = 'flex'
+        startTimer()
+        init()
+    }
+
+
+
+}
+
+function playAgain() {
+    gLevel.MINES = 0
+    gLevel.SIZE = 0
+    gGame.markedCount = 0
+    clearInterval(gTimerInterval)
+    var elTimer = document.querySelector('.timer span')
+    elTimer.innerText = '00:00:00'
+
+    var elFlagsAmount = document.querySelector('.flagAmount span')
+    elFlagsAmount.innerText = ''
+
+    var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+    elTimerAndFlagAmount.style.display = 'none'
+
+
+    var elModal = document.querySelector('.modal')
+    elModal.style.display = 'none'
+
+    init()
+
+}
+
+
+
 function handleContextMenu(event) {
     event.preventDefault();
     simulateLeftClick(event)
@@ -137,7 +240,7 @@ function revealEmptyPlaces(row, col, board) {
 
     cell.minesAroundCount = countBombs(row, col) // counts the bombs around the cell
 
-    if (cell.isMine || cell.isShown) { // if its a show cell, return , same for a mine.
+    if (cell.isMine || cell.isShown || cell.isMarked) { // if its a show cell, return , same for a mine.
         return
     }
 
@@ -184,7 +287,7 @@ function bombPlacer(board, initialClickI, initialClickJ) { // MODIFIED VERSION, 
             }
         }
     }
-
+    console.log(gBombs);
     gFirstMove = false;
 }
 
@@ -224,64 +327,80 @@ function revealBombs() {
 
 
 function getNotBombs(board) {
-    var arr = []
+    var arr = [];
     for (var i = 0; i < board.length; i++) {
-        for (var j = 0; j < board.length; j++) {
+        for (var j = 0; j < board[0].length; j++) {
             var currCell = board[i][j]
             if (currCell.isMine === false) {
                 arr.push(currCell)
             }
-
         }
-
     }
     return arr
 }
 
 
-function winOrLose() {
+
+
+
+function endGame() {
+    gGame.isOn = false;
+    var elSpan = document.querySelector('.modal span')
+    var elModal = document.querySelector('.modal')
     // Check if all non-mine cells in gNotBombs are not marked
     for (var i = 0; i < gNotBombs.length; i++) {
         if (gNotBombs[i].isMarked) {
-            return false // If any non-mine cell is marked, return false
+            console.log('you lost');
+            elModal.style.display = 'block'
+            elSpan.innerText = 'LOST!'
+            clearInterval(gTimerInterval)
+            return// If any non-mine cell is not marked, return false
         }
     }
 
     // Check if all mine cells in gBombs are marked
     for (var i = 0; i < gBombs.length; i++) {
         if (!gBombs[i].isMarked) {
-            return false // If any mine cell is not marked, return false
+            console.log('you lost');
+            elModal.style.display = 'block'
+            elSpan.innerText = 'LOST!'
+            clearInterval(gTimerInterval)
+            return // If any mine cell is not marked, return false
         }
     }
 
-    // Check if the number of marked mines is equal to the total number of mines
-    return gGame.markedCount === gLevel.MINES
+    console.log('you won');
+    elModal.style.display = 'block'
+    elSpan.innerText = 'WON!'
+    clearInterval(gTimerInterval)
 }
 
 
-function endGame() {
-    gGame.isOn = false
-    if (winOrLose() === true) {
-        console.log('you won')
-        for (var i = 0; i < gNotBombs.length; i++) {
 
 
-        }
-    }
-    else (console.log('you lose'))
-}
 
 function flagOrPress(event, elBtn) {
     event.preventDefault()
+
+    var elFlagsAmount = document.querySelector('.flagAmount span')
+    elFlagsAmount.innerText = gLevel.MINES
+
     var currCell = gBoard[elBtn.dataset.i][elBtn.dataset.j]
     var currCellI = +elBtn.dataset.i
     var currCellJ = +elBtn.dataset.j
 
+    if (gFirstMove === true && event.button === 2) {
+        return
+    }
 
     if (gFirstMove === true && event.button === 0) {
         gFirstMove = false
         currCell.minesAroundCount = 0
         bombPlacer(gBoard, currCellI, currCellJ)
+        gNotBombs = getNotBombs(gBoard)
+
+        // console.log('NOT BOMBS', gNotBombs);
+        // console.log('BOMBS', gBombs);
     }
 
     currCell.minesAroundCount = countBombs(currCellI, currCellJ)
@@ -295,7 +414,16 @@ function flagOrPress(event, elBtn) {
 
         if (currCell.isMine === true) {
             revealBombs()
-            endGame()
+            gGame.isOn = false
+            console.log('you lost');
+            var elSpan = document.querySelector('.modal span')
+            var elModal = document.querySelector('.modal')
+            elModal.style.display = 'block'
+            elSpan.innerText = 'LOST!'
+            clearInterval(gTimerInterval)
+            return
+
+
         } else {
             if (currCell.minesAroundCount === 0) {
                 revealEmptyPlaces(currCellI, currCellJ, gBoard)
@@ -305,7 +433,6 @@ function flagOrPress(event, elBtn) {
             }
         }
     } else if (event.button === 2) {
-
 
         if (!currCell.isMarked) {
 
@@ -317,6 +444,7 @@ function flagOrPress(event, elBtn) {
             elBtn.innerHTML = ''
             elBtn.appendChild(imgElementFlag)
             gGame.markedCount++
+            elFlagsAmount.innerText = gLevel.MINES - gGame.markedCount
         } else {
             // If already marked, remove flag
             currCell.isMarked = false
@@ -325,6 +453,11 @@ function flagOrPress(event, elBtn) {
             elBtn.innerHTML = ''
             elBtn.appendChild(imgElementButton)
             gGame.markedCount--
+            elFlagsAmount.innerText = gLevel.MINES - gGame.markedCount
+        }
+
+        if (gGame.markedCount === gLevel.MINES) {
+            endGame()
         }
 
 
