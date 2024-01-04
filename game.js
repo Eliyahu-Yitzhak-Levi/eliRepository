@@ -15,8 +15,13 @@ var gLevel = {
     MINES: 0
 }
 
+
+var gCluesIndex = 0
+var gLifesIndex = 0
 var gClues = 3
+var gClueCondition = false;
 var gLifes = 3
+
 var gTimerInterval
 var gFirstMove = true
 var gNotBombs
@@ -122,6 +127,25 @@ function startTimer() {
 }
 
 
+function renderExtras() {
+
+    var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
+    elTimerAndFlagAmount.style.display = 'flex'
+
+    var elLifesAndClues = document.querySelector('.lifesAndClues')
+    elLifesAndClues.style.display = 'flex'
+
+    var lifeImages = document.querySelectorAll('.lifesAmount img')
+    for (var i = 0; i < lifeImages.length; i++) {
+        lifeImages[i].style.display = 'inline'
+    }
+
+    var elDifficulties = document.querySelector('.difficulties-title')
+    elDifficulties.style.display = 'none'
+
+}
+
+
 
 function setDifficulty(elBtn) {
     var elFlagsAmount = document.querySelector('.flagAmount span')
@@ -130,40 +154,44 @@ function setDifficulty(elBtn) {
 
     if (elBtn.innerText === 'Easy ||') {
         console.log('easy');
-        gLevel.SIZE = 5
-        gLevel.MINES = 2
+        gLevel.SIZE = 10
+        gLevel.MINES = 5
+
         elFlagsAmount.innerText = gLevel.MINES
-        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
-        elTimerAndFlagAmount.style.display = 'flex'
+
+        renderExtras()
         startTimer()
         init()
 
     } else if (elBtn.innerText === 'Intermidate ||') {
         console.log('inter');
-        gLevel.SIZE = 10
+        gLevel.SIZE = 15
         gLevel.MINES = 30
+
         elFlagsAmount.innerText = gLevel.MINES
-        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
-        elTimerAndFlagAmount.style.display = 'flex'
+
+        renderExtras()
         startTimer()
         init()
 
     } else if (elBtn.innerText === 'Hard ||') {
         console.log('hard');
-        gLevel.SIZE = 20
+        gLevel.SIZE = 25
         gLevel.MINES = 60
+
         elFlagsAmount.innerText = gLevel.MINES
-        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
-        elTimerAndFlagAmount.style.display = 'flex'
+
+        renderExtras()
         startTimer()
         init()
     } else if (elBtn.innerText === 'Custom size') {
         console.log('custom');
         gLevel.SIZE = +prompt('Board size : ')
         gLevel.MINES = +prompt('How many mines bro?')
+
         elFlagsAmount.innerText = gLevel.MINES
-        var elTimerAndFlagAmount = document.querySelector('.flagAndTimer')
-        elTimerAndFlagAmount.style.display = 'flex'
+
+        renderExtras()
         startTimer()
         init()
     }
@@ -176,7 +204,13 @@ function playAgain() {
     gLevel.MINES = 0
     gLevel.SIZE = 0
     gGame.markedCount = 0
+    gLifesIndex = 0
+    gLifes = 3
     clearInterval(gTimerInterval)
+
+    var elDifficulties = document.querySelector('.difficulties-title')
+    elDifficulties.style.display = 'flex'
+
     var elTimer = document.querySelector('.timer span')
     elTimer.innerText = '00:00:00'
 
@@ -189,6 +223,9 @@ function playAgain() {
 
     var elModal = document.querySelector('.modal')
     elModal.style.display = 'none'
+
+    var elLifesAndClues = document.querySelector('.lifesAndClues')
+    elLifesAndClues.style.display = 'none'
 
     init()
 
@@ -244,17 +281,17 @@ function revealEmptyPlaces(row, col, board) {
         return
     }
 
-    cell.isShown = true; // if not by default we make it shown
+    cell.isShown = true // if not by default we make it shown
 
     // DOM select the button in that row and colum
-    const cellButton = document.querySelector(`[data-i="${row}"][data-j="${col}"]`); // retrives the button that has a certain I and J.
+    const cellButton = document.querySelector(`[data-i="${row}"][data-j="${col}"]`) // retrives the button that has a certain I and J.
 
     for (var i = row - 1; i <= row + 1; i++) { // neg loop
         for (var j = col - 1; j <= col + 1; j++) {
 
             if (cell.minesAroundCount === 0) { // if its a 0 in that cell, make it empty
                 cellButton.innerHTML = ''
-                cellButton.classList.add('revealed');
+                cellButton.classList.add('revealed')
                 revealEmptyPlaces(i, j, board) // recursivly call the function again, looking for more '0'
             } else if (cell.minesAroundCount > 0) { // if its not a 0 in that cell, 
                 cellButton.innerText = countBombs(row, col) // update the number
@@ -287,11 +324,11 @@ function bombPlacer(board, initialClickI, initialClickJ) { // MODIFIED VERSION, 
             }
         }
     }
+
     console.log(gBombs);
-    gFirstMove = false;
+    gFirstMove = false
+
 }
-
-
 
 
 // function bombPlacer(board) { 1ST VERSION OF BOMBPLACER, WITHOUT BONUS although bonus is not completed yet, a bug I cant find :(
@@ -304,6 +341,7 @@ function bombPlacer(board, initialClickI, initialClickJ) { // MODIFIED VERSION, 
 //         gBombs.push(board[randomCellIbomb][randomCellJbomb])
 //     }
 // }
+
 
 function revealBombs() {
     for (var i = 0; i < gBoard.length; i++) {
@@ -376,6 +414,62 @@ function endGame() {
 }
 
 
+function getClueCondition(elClueBtn) {
+    console.log(elClueBtn);
+    gClueCondition = true
+
+}
+
+
+
+// function getClueArea(row, col) {
+//     console.log('hi');
+
+//     // Reveal the area
+//     for (var i = row - 1; i <= row + 1; i++) {
+//         if (i < 0 || i >= gBoard.length) continue;
+//         for (var j = col - 1; j <= col + 1; j++) {
+//             if (j < 0 || j >= gBoard[i].length) continue;
+//             const cell = gBoard[i][j];
+//             const cellButton = document.querySelector(`[data-i="${i}"][data-j="${j}"]`);
+//             if (cell.isShown) { if its a bomb?
+//                 continue;
+//             }
+//             if (cell.minesAroundCount === 0) {
+//                 cell.isShown = true;
+//                 cell.minesAroundCount = countBombs(i, j);
+//                 cellButton.innerText = cell.minesAroundCount;
+//                 cellButton.classList.add('revealed');
+//             } else if (cell.minesAroundCount > 0) {
+//                 cell.isShown = true;
+//                 cellButton.innerText = countBombs(i, j);
+//                 cellButton.classList.add('revealed');
+//             }
+//         }
+//     }
+
+//     // Reset the area after a delay
+//     setTimeout(() => {
+//         for (var i = row - 1; i <= row + 1; i++) {
+//             if (i < 0 || i >= gBoard.length) continue;
+//             for (var j = col - 1; j <= col + 1; j++) {
+//                 if (j < 0 || j >= gBoard[i].length) continue;
+//                 const cell = gBoard[i][j];
+//                 const cellButton = document.querySelector(`[data-i="${i}"][data-j="${j}"]`);
+//                 if (cell.isShown) {
+//                     continue;
+//                 }
+//                 // Remove the 'revealed' class
+//                 cellButton.classList.remove('revealed');
+//                 // Reset the content of the cell to a button image
+//                 cellButton.innerHTML = '<img src="button.png" alt="button">';
+//             }
+//         }
+//     }, 1000);
+// }
+
+
+
 
 
 
@@ -388,6 +482,11 @@ function flagOrPress(event, elBtn) {
     var currCell = gBoard[elBtn.dataset.i][elBtn.dataset.j]
     var currCellI = +elBtn.dataset.i
     var currCellJ = +elBtn.dataset.j
+    var elBtn = document.querySelector(`[data-i="${currCellI}"][data-j="${currCellJ}"]`)
+
+    if (currCell.isShown === true || elBtn.innerText !== '') {
+        return
+    }
 
     if (gFirstMove === true && event.button === 2) {
         return
@@ -396,14 +495,18 @@ function flagOrPress(event, elBtn) {
     if (gFirstMove === true && event.button === 0) {
         gFirstMove = false
         currCell.minesAroundCount = 0
+        // I tried sending to revealEmptyPlaces function the currentI and currentJ with the property of no mines on them, which
+        // would force the activation of the cell opening
+        // would love to know why it didnt work, time didnt permit, all I could manage is that the first cell is NOT a bomb, but 
+        // it dosnt promise me its an empty cell. Weird stuff.
+
         bombPlacer(gBoard, currCellI, currCellJ)
         gNotBombs = getNotBombs(gBoard)
 
-        // console.log('NOT BOMBS', gNotBombs);
-        // console.log('BOMBS', gBombs);
+
     }
 
-    currCell.minesAroundCount = countBombs(currCellI, currCellJ)
+    // currCell.minesAroundCount = countBombs(currCellI, currCellJ)
 
     if (event.button === 0) {
         // Left mouse click logic
@@ -412,25 +515,61 @@ function flagOrPress(event, elBtn) {
             return
         }
 
-        if (currCell.isMine === true) {
-            revealBombs()
-            gGame.isOn = false
-            console.log('you lost');
-            var elSpan = document.querySelector('.modal span')
-            var elModal = document.querySelector('.modal')
-            elModal.style.display = 'block'
-            elSpan.innerText = 'LOST!'
-            clearInterval(gTimerInterval)
+        if (gClues > 0 && gClueCondition === true) {
+            console.log('in clue condition at buttonhandler');
+            getClueArea(currCellI, currCellJ)
             return
+        }
 
 
+        if (currCell.isMine === true) {
+            if (gLifes > 0) {
+                // MODEL
+                gLevel.MINES--
+                gLifes--
+                elFlagsAmount.innerText = gLevel.MINES - gGame.markedCount
+                currCell.isShown = true
+
+
+                //DOM BOMB RENDER
+
+                elBtn.classList.add('revealed')
+                elBtn.innerHTML = ''
+                const imgElement = document.createElement('img')
+                imgElement.src = 'bomb.PNG'
+                elBtn.appendChild(imgElement)
+
+                //DOM LIFE RENDER REMOVE
+
+                var lifeImages = document.querySelectorAll('.lifesAmount img')
+                lifeImages[gLifesIndex].style.display = 'none'
+                gLifesIndex++
+
+
+
+            } else {
+
+                revealBombs()
+                gGame.isOn = false
+                console.log('you lost');
+                var elSpan = document.querySelector('.modal span')
+                var elModal = document.querySelector('.modal')
+                elModal.style.display = 'block'
+                elSpan.innerText = 'LOST!'
+                clearInterval(gTimerInterval)
+                return
+
+            }
         } else {
+
             if (currCell.minesAroundCount === 0) {
                 revealEmptyPlaces(currCellI, currCellJ, gBoard)
             } else {
+                currCell.minesAroundCount = countBombs(currCellI, currCellJ)
                 elBtn.innerText = currCell.minesAroundCount
                 elBtn.classList.add('revealed')
             }
+
         }
     } else if (event.button === 2) {
 
@@ -459,7 +598,6 @@ function flagOrPress(event, elBtn) {
         if (gGame.markedCount === gLevel.MINES) {
             endGame()
         }
-
 
     }
 }
